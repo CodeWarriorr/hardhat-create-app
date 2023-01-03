@@ -18,14 +18,29 @@ process.chdir(root);
 
 console.log(`Creating a new Hardhat project in ${root}.`);
 
+// Set yarn to v2
+console.log('Setting yarn to enable v2...');
+spawnSync('yarn', ['set', 'version', 'berry'], { stdio: 'inherit' });
+
 // Initialize a new npm project
 console.log('Initializing a new npm project...');
-spawnSync('npm', ['init', '-y'], { stdio: 'inherit' });
+spawnSync('yarn', ['init', '--yes'], { stdio: 'inherit' });
+
+// Remove README.md created by yarn init
+console.log('Removing README.md...');
+spawnSync('rm', ['README.md'], { stdio: 'inherit' });
+
+// Make sure the nodeLinker is set to node-modules to avoid issues with npx
+console.log('Add nodeLinker to .yarnrc.yml...');
+const yarnrcPath = path.join(root, '.yarnrc.yml');
+const yarnrcContent = fs.readFileSync(yarnrcPath, 'utf-8');
+fs.writeFileSync(yarnrcPath, yarnrcContent + 'nodeLinker: node-modules\n');
 
 // Install Hardhat and initialize a new TypeScript project
 console.log('Installing Hardhat...');
-spawnSync('npm', ['install', 'hardhat'], { stdio: 'inherit' });
+spawnSync('yarn', ['add', 'hardhat'], { stdio: 'inherit' });
 
+// Initialize a new Hardhat TypeScript project
 console.log('Initializing a new Hardhat TypeScript project...');
 const result = execSync(
   'HARDHAT_CREATE_TYPESCRIPT_PROJECT_WITH_DEFAULTS=true npx hardhat',
@@ -34,13 +49,13 @@ const result = execSync(
   }
 );
 
+// Install Hardhat Plugins
 console.log('Installing Hardhat Plugins...');
 spawnSync(
-  'npm',
+  'yarn',
   [
-    'install',
-    '--save-dev',
-    '-f',
+    'add',
+    '-D',
     'solhint',
     'prettier',
     'prettier-plugin-solidity',
@@ -49,7 +64,7 @@ spawnSync(
     '@types/mocha',
     '@types/node',
     'dotenv',
-    '@nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers',
+    '@nomiclabs/hardhat-ethers@npm:hardhat-deploy-ethers@latest',
     '@openzeppelin/contracts',
     'hardhat-contract-sizer',
     'hardhat-gas-reporter',
@@ -57,11 +72,15 @@ spawnSync(
   { stdio: 'inherit' }
 );
 
-// Add the "compile" script to package.json
+// Add the "compile" and "test" script to package.json
 console.log("Adding the 'compile' script to package.json...");
 const packageJsonPath = path.join(root, 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-packageJson.scripts.compile = 'hardhat compile';
+packageJson.scripts = {
+  ...(packageJson.script ?? {}),
+  compile: 'hardhat compile',
+  test: 'hardhat test',
+};
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
 // Edit the hardhat.config.ts
@@ -131,6 +150,7 @@ let modifiedContent = configContent.replace(
   `
 );
 
+// Add plugins to the config
 modifiedContent = modifiedContent.replace(
   `import "@nomicfoundation/hardhat-toolbox";`,
   `import '@nomicfoundation/hardhat-toolbox';
@@ -139,7 +159,6 @@ import 'hardhat-gas-reporter';
 import 'hardhat-contract-sizer';
 import { nodeUrl, accounts } from './utils/network';
 import * as dotenv from 'dotenv';
-import './tasks/acl';
 
 dotenv.config();
   `
@@ -150,24 +169,21 @@ fs.writeFileSync(configPath, modifiedContent);
 console.log('Copying files to the project directory...');
 fs.copySync(path.resolve(__dirname, '../files'), `${root}/`);
 
+// Success message
 console.log(`
 Success! Created ${projectName} at ${root}.
 
 Inside that directory, you can run several commands:
 
-  npm run compile
+  yarn run compile
     Compiles the contracts.
 
-  npm run test
+  yarn run test
     Runs the tests.
 
-  npm run test:watch
-    Runs the tests in watch mode.
+We suggest that you install Hardhat shorthand:
 
-We suggest that you begin by typing:
-
-  cd ${projectName}
-  npm run test
+  npm install --global hardhat-shorthand
 
 Happy hacking!
 `);
