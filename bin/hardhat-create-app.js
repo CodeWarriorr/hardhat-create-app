@@ -83,6 +83,10 @@ packageJson.scripts = {
 };
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
+// Remove the default deploy script
+console.log('Removing the default deploy script...');
+spawnSync('rm', ['scripts/deploy.ts'], { stdio: 'inherit' });
+
 // Edit the hardhat.config.ts
 console.log('Editing the hardhat.config.ts...');
 const configPath = path.join(root, 'hardhat.config.ts');
@@ -90,42 +94,42 @@ const configContent = fs.readFileSync(configPath, 'utf-8');
 let modifiedContent = configContent.replace(
   '};',
   `
-  networks: {
-    hardhat: {
-      forking: {
-        url: nodeUrl('matic') ?? '',
-        blockNumber: 37377259, // Latest as of 28.12.2022
-      },
-    },
-    matic: {
-      url: nodeUrl('matic'),
-      accounts: accounts('matic'),
-    },
-    mumbai: {
-      url: nodeUrl('mumbai'),
-      accounts: accounts('mumbai'),
-    },
-    rinkeby: {
-      url: nodeUrl('rinkeby'),
-      accounts: accounts('rinkeby'),
-    },
-  },
-  gasReporter: {
-    enabled: process.env.REPORT_GAS !== undefined,
-    currency: 'USD',
-    token: 'MATIC',
-    gasPriceApi:
-      'https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice',
-    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-  },
-  etherscan: {
-    apiKey: {
-      mainnet: process.env.ETHERSCAN_API_KEY || '',
-      rinkeby: process.env.ETHERSCAN_API_KEY || '',
-      polygon: process.env.POLYGONSCAN_API_KEY || '',
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY || '',
-    },
-  },
+//  networks: {
+//    hardhat: {
+//      forking: {
+//        url: nodeUrl('matic') ?? '',
+//        blockNumber: 37377259, // Latest as of 28.12.2022
+//      },
+//    },
+//    matic: {
+//      url: nodeUrl('matic'),
+//      accounts: accounts('matic'),
+//    },
+//    mumbai: {
+//      url: nodeUrl('mumbai'),
+//      accounts: accounts('mumbai'),
+//    },
+//    rinkeby: {
+//      url: nodeUrl('rinkeby'),
+//      accounts: accounts('rinkeby'),
+//    },
+//  },
+//  gasReporter: {
+//    enabled: process.env.REPORT_GAS !== undefined,
+//    currency: 'USD',
+//    token: 'MATIC',
+//    gasPriceApi:
+//      'https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice',
+//    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+//  },
+//  etherscan: {
+//    apiKey: {
+//      mainnet: process.env.ETHERSCAN_API_KEY || '',
+//      rinkeby: process.env.ETHERSCAN_API_KEY || '',
+//      polygon: process.env.POLYGONSCAN_API_KEY || '',
+//      polygonMumbai: process.env.POLYGONSCAN_API_KEY || '',
+//    },
+//  },
   mocha: {
     timeout: 0,
   },
