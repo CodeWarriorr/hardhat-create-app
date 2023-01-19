@@ -1,8 +1,9 @@
 {
   "name": "hardhat-create-app",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "",
   "main": "index.js",
+  "repository": "https://github.com/CodeWarriorr/hardhat-create-app",
   "bin": {
     "hardhat-create-app": "./bin/hardhat-create-app.js"
   },
